@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "com.example.user.ocean_stroy"
+        applicationId "com.example.user.ocean_story"
         minSdkVersion 10
         targetSdkVersion 25
         versionCode 1

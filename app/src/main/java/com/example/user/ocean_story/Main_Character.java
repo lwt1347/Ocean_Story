@@ -1,4 +1,4 @@
-package com.example.user.ocean_stroy;
+package com.example.user.ocean_story;
 
 /**
  * Created by USER on 2017-01-21.

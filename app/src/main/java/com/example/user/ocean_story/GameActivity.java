@@ -1,4 +1,4 @@
-package com.example.user.ocean_stroy;
+package com.example.user.ocean_story;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

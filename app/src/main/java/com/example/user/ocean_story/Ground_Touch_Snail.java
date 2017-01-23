@@ -1,4 +1,4 @@
-package com.example.user.ocean_stroy;
+package com.example.user.ocean_story;
 
 /**
  * Created by USER on 2017-01-21.
@@ -10,7 +10,6 @@ public class Ground_Touch_Snail extends Ground_Default_Body {
     /**
      * Ground_Touch_Snail 변수
      */
-    private int snail_DrawStatus = 0;   //이미지 변화
 
     /**
      * 기본 생성자
@@ -21,18 +20,15 @@ public class Ground_Touch_Snail extends Ground_Default_Body {
      */
     Ground_Touch_Snail(float window_Width, int width, int height, int hp) {
         super(window_Width, width, height, hp);
+        ground_Class = 1;   //달팽이 = 1
     }
 
     //********************************************************************************************//
 
-
     /**
      * 반환
      */
-    public int get_Draw_Snail_Status()
-    {
-        return snail_DrawStatus/2; //물고기 헤엄 이미지 2번씩 송출
-    }
+
 
     //********************************************************************************************//
 
@@ -50,9 +46,9 @@ public class Ground_Touch_Snail extends Ground_Default_Body {
             speed = 2 + (float)Math.random() * 3;
         }
 
-        snail_DrawStatus++;
-        if(snail_DrawStatus > 7){
-            snail_DrawStatus = 0;
+        ground_Draw_Status++;
+        if(ground_Draw_Status > 7){
+            ground_Draw_Status = 0;
         }
     }
 

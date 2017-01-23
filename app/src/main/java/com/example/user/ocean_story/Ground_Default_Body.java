@@ -1,4 +1,4 @@
-package com.example.user.ocean_stroy;
+package com.example.user.ocean_story;
 
 /**
  * Created by USER on 2017-01-21.
@@ -14,7 +14,8 @@ public class Ground_Default_Body {
     protected int hp;                               // Hp
     protected int width;                            //물고기와 다르게 직접 터치를 해야 하기 때문에 넓이와 높이 갚이 필요하다.
     protected int height;
-    protected int snail_Draw_Status = 0;             //그라운드 움직임
+    protected int ground_Draw_Status = 0;             //그라운드 움직임
+    protected int ground_Class = 0;                     //그라운드 생명체의 종류를 알아옴
 
     protected float speed = 1;
     protected float window_Width = 0;               // 윈도우 크기를 가져와 물고기 생성할 위치 조절
@@ -37,7 +38,7 @@ public class Ground_Default_Body {
         this.hp = hp;
 
         this.window_Width = window_Width;       //생성될 위치 및 벽을 못 넘도록 하기 위해 사용
-        ground_Point_X = window_Width;          //생성될 위치
+        ground_Point_X = 30 + (float)Math.random() * (window_Width-100);         //생성될 위치
 
 
 
@@ -56,9 +57,9 @@ public class Ground_Default_Body {
         return hp;                              //바닥 생명체 Hp 가져오기
     }
 
-    public int get_Draw_Snail_Status()          // 그라운드 드로우할 그림 int형 반환
+    public int get_Draw_Ground_Status()          // 그라운드 드로우할 그림 int형 반환
     {
-        return snail_Draw_Status/2;              // 그라운드 이미지 2번씩 송출
+        return ground_Draw_Status/2;              // 그라운드 이미지 2번씩 송출
     }
 
     public float get_GroundPoint_Height(){
@@ -77,6 +78,9 @@ public class Ground_Default_Body {
         return ground_Point_Y;                  //바닥 생명체 y좌표 가져오기
     }
 
+    public int get_Ground_Class(){              //바닥 생명체 종류 알아오기
+        return ground_Class;
+    }
 
     //********************************************************************************************//
 

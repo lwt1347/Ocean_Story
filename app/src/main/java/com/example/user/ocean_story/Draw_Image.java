@@ -1,4 +1,4 @@
-package com.example.user.ocean_stroy;
+package com.example.user.ocean_story;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
