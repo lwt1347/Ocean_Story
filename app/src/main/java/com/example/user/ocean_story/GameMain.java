@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.util.Log;
 import android.view.Display;
@@ -46,7 +47,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     private double smallMathResult  = 0;        //가장 가까운 물고기 찾기 위한 변수
     private boolean eraser_Fish = false;        //물고기를 지우기 허가가 떨어졌을때
 
-
+    private int touch_Check = 0;                    //물고기는 터치가 되어야 히트를한다.
 
 
     private Game_Thread game_thread;                    //스레드 돌릴 클래스 선언
@@ -72,6 +73,11 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     //드래그로 죽는 물고기 이미지
     private Bitmap fish_Drag_Default_img[] = new Bitmap[4];         //드래그로 죽는 물고기 이미지
+
+    /**
+     * 해파리 이미지
+     */
+    private Bitmap fish_Trap_Jelly_img[] = new Bitmap[8];           //해파리 이미지
 
     /**
      * 달팽이 이미지
@@ -106,6 +112,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     private Bitmap effect_Blue_img[] = new Bitmap[5];       //블루
     private Bitmap effect_Yellow_img[] = new Bitmap[5];     //옐로우
     private Bitmap effect_Green_img[] = new Bitmap[5];      //그린
+
+
 
     /**
      * 드래그 물고기 이펙트 팝
@@ -148,6 +156,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     private Fish_Touch_Default fish_Touch_Default;      //기본 물고기 생성
     private Fish_Drag_Default fish_Drag_Default;        //드래그 물고기 생성
+    private Fish_Trap_Jellyfish fish_Trap_Jellyfish;    //해파리 생성
     private Ground_Touch_Snail ground_Touch_Snail;      //달팽이 생성
     private Ground_Drag_Crab ground_Drag_Crab;          //꽃게 생성
 
@@ -163,7 +172,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     private String tempStr = "";
 
-    private SoundPool soundPool = new SoundPool(1, AudioManager.STREAM_ALARM, 0); //사운드 앞에 1은 하나만 가져다 놓겠다는 뜻. 나중에 추가 요망
+    private SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_ALARM, 0); //사운드 앞에 1은 하나만 가져다 놓겠다는 뜻. 나중에 추가 요망
+    private MediaPlayer background_Sound;
     //********************************************************************************************//
 
 
@@ -199,6 +209,15 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         sound_Effect[2] = soundPool.load(_context, R.raw.drag_sound_1, 1);      //드래그1
         sound_Effect[3] = soundPool.load(_context, R.raw.drag_sound_2, 1);      //드래그2
 
+
+        /**
+         *  배경음악 사운드풀로 안되서
+         */
+        background_Sound = MediaPlayer.create(_context, R.raw.background_music_1);
+        background_Sound.setLooping(true);
+        background_Sound.setVolume(1f,1f);
+        background_Sound.start();
+
     }
 
     //********************************************************************************************//
@@ -220,6 +239,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
                         add_Fish_Touch_Default();           //기본 물고기 추가
                         add_Fish_Drag_Default();            //드래그 물고기 추가
 
+                        add_Fish_JellyFish();               //해파리 추가
 
                         add_Ground_Snail();                 //달팽이 추가
                         add_Ground_Crab();                  //꽃게 추가
@@ -274,7 +294,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
                 ground_Drag_Crab_img[i] = Init_Ground_Drag_Crab_Image(_context, i);              //꽃게 이미지
 
+            }
 
+            for(int i=0; i<8; i++){
+                fish_Trap_Jelly_img[i] = Init_Fish_Trap_Jellyfish(_context, i);                 //해파리 이미지
             }
 
 
@@ -362,6 +385,11 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             return image.getBitmap();
         }
 
+        //해파리 이미지
+        public Bitmap Init_Fish_Trap_Jellyfish(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.fish_trap1_1 + num); //인트형이라 + 1하면 그림 변경됨
+            return image.getBitmap();
+        }
 
 
 
@@ -530,7 +558,20 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             }else if(fish_List.get(i) instanceof  Fish_Drag_Default){
                 temp_Fish = draw.rotate_Image(fish_Drag_Default_img[fish_List.get(i).get_Draw_Fish_Status()], -fish_List.get(i).get_Fish_Angle());
                 draw.draw_Bmp(canvas, temp_Fish, fish_List.get(i).get_Fish_Point_X(), fish_List.get(i).get_Fish_Point_Y());
+
+                /**
+                 *  해파리 그리기
+                 */
+            }else if(fish_List.get(i) instanceof Fish_Trap_Jellyfish){
+                temp_Fish = draw.rotate_Image(fish_Trap_Jelly_img[fish_List.get(i).get_Draw_Fish_Status()], 90-fish_List.get(i).get_Fish_Angle());
+                draw.draw_Bmp(canvas, temp_Fish, fish_List.get(i).get_Fish_Point_X(), fish_List.get(i).get_Fish_Point_Y());
             }
+
+
+
+
+
+
         }
 
 
@@ -638,6 +679,17 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     }
 
     /**
+     * 해파리 추가
+     */
+    public void add_Fish_JellyFish(){
+
+        fish_Trap_Jellyfish = new Fish_Trap_Jellyfish(window_Width, window_Height, 1);                //화면 좌우축 둘중 한군대만 생성 hp = 1
+        fish_List.add(fish_Trap_Jellyfish);
+
+    }
+
+
+    /**
      *  드래그 물고기 추가하기
      */
     public void add_Fish_Drag_Default(){
@@ -719,7 +771,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             }
 
             //물고기가 y축 으로 넘어가면 삭제
-            if(fish_List.get(i).get_Fish_Point_Y() >= getHeight() - 30){
+            if(fish_List.get(i).get_Fish_Point_Y() >= getHeight() - 30
+                    || fish_List.get(i).get_Fish_Point_X() < -30                  //X축으로 0 보다 작으면 삭제
+                    || fish_List.get(i).get_Fish_Point_X() > getWidth() + 30){       //X축으로 화면 보다 크면 삭제
                 fish_List.remove(i);
                 break;
             }
@@ -745,6 +799,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             }
         }
     }
+
+
+
 
 
     /**
@@ -808,6 +865,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
             //클릭된 달팽이의체력을 깍는다.
             ground_List.get(ground_Remove_Temp).set_Ground_Hp_Minus();
+            soundPool.play(sound_Effect[random.nextInt(2)], 0.7F, 0.7F, 1, 1, 1.0F);   //물고기 기본 팝 사운드
             return true;
 
             //선택된 꽃게가 있다면.
@@ -824,7 +882,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
             //드래그된 꽃게의 체력을 깍는다.
             ground_List.get(ground_Remove_Temp).set_Ground_Hp_Minus();
-            soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.3F, 0.3F, 1, 1, 1.0F);   //드래그 사운드
+            soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.05F, 0.05F, 1, 1, 1.0F);   //드래그 사운드
+
         }
 
 
@@ -833,12 +892,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     }
 
 
-
-
     /**
      * 물고기 히트
      */
-    public void fish_Hit_Chose(int fish_Class){
+    public boolean fish_Hit_Chose(int fish_Class){
 
         //물고기 삭제 1번 먼저
         if(fish_List.size() != 0) {         //물고기가 존재할때 눌러짐
@@ -909,7 +966,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
                             effect_TempRandom_Temp.remove(0);
                         }
                     }).start();
-                    soundPool.play(sound_Effect[random.nextInt(2)], 0.3F, 0.3F, 1, 1, 1.0F);   //물고기 기본 팝 사운드
+                    soundPool.play(sound_Effect[random.nextInt(2)], 0.7F, 0.7F, 1, 1, 1.0F);   //물고기 기본 팝 사운드
+
                 }
 
 
@@ -925,20 +983,29 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
                         draw.draw_Bmp(canvas, effect_Pop1_img[random.nextInt(5)],
                                 fish_List.get(smallFishIndex).get_Fish_Point_X() + random.nextInt(fish_Drag_Default_img[0].getWidth() - 25),
                                 fish_List.get(smallFishIndex).get_Fish_Point_Y() + random.nextInt(fish_Drag_Default_img[0].getHeight()) - 35);
-                        soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.3F, 0.3F, 1, 1, 1.0F);   //드래그 사운드
+                        soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.05F, 0.05F, 1, 1, 1.0F);   //드래그 사운드
                     }
+                    return true;
                 }
 
 
 
             }else {
+
+
                 Log.i("발 터짐",window_Width + " ");
+
+
             }
+
+
+        }else {
 
 
         }
 
 
+        return false;
     }
 
 
@@ -980,29 +1047,34 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     public synchronized boolean onTouchEvent(MotionEvent event) {
 
         if(event.getAction() == MotionEvent.ACTION_DOWN){           //손가락이 눌렸을때.
+            touch_Check = 0;   //터치 체크 상태가 5이하 일때 터치라 판정.
 
 
-            //퍼즈 컨트롤
-            if(pause_Effect(event.getX(), event.getY())){
-
-            }else if(ground_Hit_Chose(event.getX(), event.getY(), 1)){ //달팽이 삭제
-
-            }else {
-                //문어 공격 속도로 제어한다. 쿨타임 효과
-                if (main_Character.get_Attack_Cool_time() == 0) {
-                    fish_Hit_Chose(1);                              //기본 물고기 터치 확인 == 1
-                    main_Character.set_Attack_Cool_Time();
-                }
-            }
 
 
         } else if(event.getAction() == MotionEvent.ACTION_UP){      //때졌을때.
 
+            if(touch_Check <= 5){
+                //퍼즈 컨트롤
+                if(pause_Effect(event.getX(), event.getY())){
 
+                }else if(ground_Hit_Chose(event.getX(), event.getY(), 1)){ //달팽이 삭제
+
+                }else {
+                    //문어 공격 속도로 제어한다. 쿨타임 효과
+                    if (main_Character.get_Attack_Cool_time() == 0) {
+                        if(!fish_Hit_Chose(1)){      //기본 물고기 터치 확인 == 1
+                            //기본 물고기가 존재하지 않을때
+                            fish_Hit_Chose(10);         //해파리 타격 메인 캐릭터 Hp 감소 해야한다.
+                        }
+                        main_Character.set_Attack_Cool_Time();
+                    }
+                }
+            }
 
 
         } else if(event.getAction() == MotionEvent.ACTION_MOVE){    //드래그 중일때
-
+            touch_Check++;
             drag_Action_Move++;
             if(drag_Action_Move > 2) {
 
@@ -1097,6 +1169,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         }
 
         mRun = true;
+
+
+
 
     }
 
