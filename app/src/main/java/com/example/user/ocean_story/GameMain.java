@@ -1,8 +1,12 @@
 package com.example.user.ocean_story;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.NinePatch;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
@@ -49,6 +53,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     private int touch_Check = 0;                    //물고기는 터치가 되어야 히트를한다.
 
+    private int Score = 0;                          //점수
 
     private Game_Thread game_thread;                    //스레드 돌릴 클래스 선언
     private Game_Element_Thread game_element_thread;    //게임 요소 생성[물고기, 함정 등]쓰레드 생성
@@ -60,7 +65,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     //pause 이미지
     private Bitmap pause_img[] = new Bitmap[2];
-
+    private Bitmap pause_View_img = null;   //퍼지 눌렀을때 뜨는 창
+    private NinePatch ninePatch;     //나인패치 적용방법 변수
     /**
      * 기본 물고기 이미지
      */
@@ -150,7 +156,13 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
 
     private Draw_Image draw = new Draw_Image();
-    private Paint paint = new Paint();
+    private Paint paint = new Paint();                 //점수
+    private Paint paint_Temp = new Paint();            //점수 테두리
+
+    private Paint paint_Best = new Paint();                 //점수
+    private Paint paint_Temp_Best = new Paint();            //점수 테두리
+
+
     private Canvas canvas;
     Thread background_Effect;                           //배경화면 쓰레드
 
@@ -174,10 +186,11 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     private SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_ALARM, 0); //사운드 앞에 1은 하나만 가져다 놓겠다는 뜻. 나중에 추가 요망
     private MediaPlayer background_Sound;
+
+
+
+
     //********************************************************************************************//
-
-
-
 
 
 
@@ -186,6 +199,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
      */
     public GameMain(Context context) {
         super(context);
+
+
+
+
 
 
         _context = context;
@@ -271,6 +288,13 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         public Game_Thread(SurfaceHolder surfaceHolder) { //더블 버퍼링 같은것,
 
             backGroundImg = Init_Background_Image(_context, 0); //배경
+
+
+            pause_View_img = BitmapFactory.decodeResource(getResources(), R.drawable.pause_view);    //나인패치 적용방법
+            ninePatch = new NinePatch(pause_View_img, pause_View_img.getNinePatchChunk(), "");       //나인패치 적용방법
+
+
+
 
 
             //퍼즈 이미지
@@ -426,9 +450,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
         //퍼즈 이미지
         public Bitmap Init_Pause_Image(Context context, int num){
-            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.pause_1 + num); //인트형이라 + 1하면 그림 변경됨
-            return image.getBitmap();
+                image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.pause_1 + num); //인트형이라 + 1하면 그림 변경됨
+                return image.getBitmap();
         }
+
 
 
 
@@ -593,14 +618,46 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
 
 
+        paint.setTextSize(50);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(4);
+        paint.setColor(Color.BLACK);
 
 
         //퍼지 그리기
         if(!pause_Push) { //안눌렸을때
             draw.draw_Bmp(canvas, pause_img[0], window_Width - 100, 10);
+
+
+
         }else { //눌렸을때
             draw.draw_Bmp(canvas, pause_img[1], window_Width - 100, 10);
+
+
+            //퍼지 뷰
+            //ninePatch.draw(canvas, new Rect(100,200, window_Width - 100, window_Height/2 + 100), paint);           //나인패치 적용방법
+            //draw.draw_Bmp(canvas, pause_View_img, window_Width/2 - 100, window_Height/2 - 100); //나인패치 적용방법
+
+            _context.startActivity(new Intent(_context, Menu_Sliding_Panel.class)); //-> 일시정지 창을 팝업한다. Menu_Sliding_Panel 호출
+
+            mRun = false; //화면 정지 일시정지 화면 출력
         }
+
+        /**
+         *  점수 그리기
+         */
+
+        canvas.drawText(Score+"", 30, 50, paint);
+
+        paint_Temp.setTextSize(50);
+        paint_Temp.setColor(Color.YELLOW);
+        canvas.drawText(Score+"", 30, 50, paint_Temp);
+
+        paint_Best.setTextSize(25);
+        paint_Best.setStyle(Paint.Style.STROKE);
+        paint_Best.setStrokeWidth(3);
+        paint_Best.setColor(Color.BLACK);
+        canvas.drawText("Best ", 30, 80, paint_Best);
 
 
 
@@ -883,6 +940,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             //드래그된 꽃게의 체력을 깍는다.
             ground_List.get(ground_Remove_Temp).set_Ground_Hp_Minus();
             soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.05F, 0.05F, 1, 1, 1.0F);   //드래그 사운드
+            Score++;            //점수 추가
 
         }
 
@@ -974,7 +1032,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
                 if(fish_List.get(smallFishIndex).get_Fish_Hp() > 0) {        //드래그 속도까 빨라서 0밑으로내려감 방지
                     fish_List.get(smallFishIndex).set_Hp_Minus();            //풍타디 처럼 물고기 hp 깍으면 색깔 변경
-
+                    Score++;                                                 //점수 증가
 
 
 
@@ -1109,7 +1167,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
                 && y >= 10
                 && y <= 10 + + pause_img[0].getHeight()){
             pause_Push = true;
-            mRun = false;  //일시정지 화면 띄워야 함.
+            //mRun = false;  //일시정지 화면 띄워야 함. -> 이미지가변경 되야 하기 때문에 이미지 변경후 멈춤으로 진행
+
+
             return true;
         }
         return false;

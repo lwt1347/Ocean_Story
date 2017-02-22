@@ -19,4 +19,5 @@
         android:layout_marginTop="38dp"
         android:id="@+id/button"
         android:onClick="onButtonGame_StartClicked" />
+
 </RelativeLayout>
