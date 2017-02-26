@@ -16,8 +16,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".GameActivity" />
-        <activity android:name=".Menu_Sliding_Panel"
-            android:theme="@android:style/Theme.Dialog"></activity>
+        <activity
+            android:name=".Menu_Sliding_Panel"
+            android:theme="@android:style/Theme.Dialog" />
     </application>
 
 </manifest>

@@ -1,9 +1,7 @@
 package com.example.user.ocean_story;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.NinePatch;
@@ -12,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -63,9 +62,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     private BitmapDrawable image = null;                //메모리 절약 기법
     private Bitmap backGroundImg = null;                //배경이미지
 
-    //pause 이미지
-    private Bitmap pause_img[] = new Bitmap[2];
-    private Bitmap pause_View_img = null;   //퍼지 눌렀을때 뜨는 창
+    //pause 이미지  -> 컨트롤 화면에서
+    //private Bitmap pause_img[] = new Bitmap[2];
+    //private Bitmap pause_View_img = null;   //퍼지 눌렀을때 뜨는 창
     private NinePatch ninePatch;     //나인패치 적용방법 변수
     /**
      * 기본 물고기 이미지
@@ -140,7 +139,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     private Bitmap effect_Background_Two_1_img[] = new Bitmap[8];
 
     //퍼지 이미지 변경
-    boolean pause_Push = false;
+    //boolean pause_Push = false;
 
     //물기고 생성
     private ArrayList<Fish_Default_Body> fish_List = new ArrayList<Fish_Default_Body>();            //물고기를 넣을 어레이 리스트
@@ -153,6 +152,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     private ArrayList<Float> effect_Ground_Draw_Y = new ArrayList<Float>();
 
     private ArrayList<Integer> effect_TempRandom_Temp = new ArrayList<Integer>();                   //이펙트 효과를 위한 랜덤 리스트
+
 
 
     private Draw_Image draw = new Draw_Image();
@@ -194,23 +194,17 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
 
 
+
     /**
      * 기본 생성자
      */
-    public GameMain(Context context) {
-        super(context);
-
-
-
-
-
+    public GameMain(Context context, AttributeSet attrs){
+        super(context,attrs);   //커스텀 뷰 사용 -> attrs.xml 에 등록 해야함
 
         _context = context;
         mSurfaceHolder = getHolder();
         mSurfaceHolder.addCallback(this);
-        game_thread = new Game_Thread(mSurfaceHolder);      //그림이 그려지고, 게임 동작하는곳
-
-
+        game_thread = new Game_Thread(/*mSurfaceHolder*/);      //그림이 그려지고, 게임 동작하는곳
 
         //게임 요소 추가 할 쓰레드 [물고기, 함정 등]
         game_element_thread = new Game_Element_Thread();
@@ -237,17 +231,40 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     }
 
+    /**
+     * 다시시작
+     */
+    public void re_Start(){
+
+        //스테이지  = 1, 속도 = 1
+        fish_List.clear();
+      ground_List.clear();
+         Score = 0;
+
+    }
+
+    //게임 상태 컨트롤
+    public void m_Run_False(){
+        mRun = false;
+    }
+    public void m_Run_True(){
+        mRun = true;
+    }
+
+
     //********************************************************************************************//
 
     /**
      *  내부 클래스
      *  게임 요소 추가 할 스레드 [물고기, 바닥 생명체 등.]
      */
+
     class Game_Element_Thread extends Thread{
 
 
         @Override
         public synchronized void run() {
+            while(true) //mRun 이 false가 되더라도 종료하지 않도록함
             while(mRun){
 
                 try {
@@ -274,6 +291,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     //********************************************************************************************//
 
+
     /**
      *  이너 클래스
      *  내부 클래스 게임 스레드
@@ -285,21 +303,21 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         /**
          *  Game_Thread 기본 생성자, 이미지 초기화
          */
-        public Game_Thread(SurfaceHolder surfaceHolder) { //더블 버퍼링 같은것,
+        public Game_Thread(/*SurfaceHolder surfaceHolder*/) { //더블 버퍼링 같은것,
 
             backGroundImg = Init_Background_Image(_context, 0); //배경
 
 
-            pause_View_img = BitmapFactory.decodeResource(getResources(), R.drawable.pause_view);    //나인패치 적용방법
-            ninePatch = new NinePatch(pause_View_img, pause_View_img.getNinePatchChunk(), "");       //나인패치 적용방법
+            //pause_View_img = BitmapFactory.decodeResource(getResources(), R.drawable.pause_view);    //나인패치 적용방법
+            //ninePatch = new NinePatch(pause_View_img, pause_View_img.getNinePatchChunk(), "");       //나인패치 적용방법
 
 
 
 
 
             //퍼즈 이미지
-            pause_img[0] = Init_Pause_Image(_context, 0);
-            pause_img[1] = Init_Pause_Image(_context, 1);
+            //pause_img[0] = Init_Pause_Image(_context, 0);
+            //pause_img[1] = Init_Pause_Image(_context, 1);
 
             for(int i = 0; i < 4; i++) {
                 fish_Touch_Default_Hp1_img[i] = Init_Fish_Touch_Default_Hp1_Image(_context, i); //캐릭터 이미지 추가 hp = 1
@@ -449,10 +467,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
 
         //퍼즈 이미지
-        public Bitmap Init_Pause_Image(Context context, int num){
+        /*public Bitmap Init_Pause_Image(Context context, int num){
                 image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.pause_1 + num); //인트형이라 + 1하면 그림 변경됨
                 return image.getBitmap();
-        }
+        }*/
 
 
 
@@ -623,25 +641,23 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         paint.setStrokeWidth(4);
         paint.setColor(Color.BLACK);
 
-
+    /*
         //퍼지 그리기
         if(!pause_Push) { //안눌렸을때
             draw.draw_Bmp(canvas, pause_img[0], window_Width - 100, 10);
-
-
-
         }else { //눌렸을때
             draw.draw_Bmp(canvas, pause_img[1], window_Width - 100, 10);
-
-
             //퍼지 뷰
             //ninePatch.draw(canvas, new Rect(100,200, window_Width - 100, window_Height/2 + 100), paint);           //나인패치 적용방법
             //draw.draw_Bmp(canvas, pause_View_img, window_Width/2 - 100, window_Height/2 - 100); //나인패치 적용방법
-
-            _context.startActivity(new Intent(_context, Menu_Sliding_Panel.class)); //-> 일시정지 창을 팝업한다. Menu_Sliding_Panel 호출
-
+            Intent intent = new Intent(_context, Menu_Sliding_Panel.class);
+            //intent.putExtra("a", mRun);
+            _context.startActivity(intent); //-> 일시정지 창을 팝업한다. Menu_Sliding_Panel 호출
             mRun = false; //화면 정지 일시정지 화면 출력
         }
+    */
+
+
 
         /**
          *  점수 그리기
@@ -664,12 +680,12 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
     }
 
 
+
     /**
      * 게임이 동작하는 구간
      */
-
-
     public void run() {
+        while(true)
         while (mRun) {
             //퍼즈 걸도록 mRun 컨트롤
 
@@ -677,8 +693,6 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
                 try {
                     canvas = mSurfaceHolder.lockCanvas(null);
                     synchronized (mSurfaceHolder) {
-
-
 
                         /**
                          * 그림 그리기 구간
@@ -941,7 +955,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
             ground_List.get(ground_Remove_Temp).set_Ground_Hp_Minus();
             soundPool.play(sound_Effect[2 + random.nextInt(2)], 0.05F, 0.05F, 1, 1, 1.0F);   //드래그 사운드
             Score++;            //점수 추가
-
+            return true;
         }
 
 
@@ -1114,9 +1128,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
             if(touch_Check <= 5){
                 //퍼즈 컨트롤
-                if(pause_Effect(event.getX(), event.getY())){
+                //if(pause_Effect(event.getX(), event.getY())){
 
-                }else if(ground_Hit_Chose(event.getX(), event.getY(), 1)){ //달팽이 삭제
+                if(ground_Hit_Chose(event.getX(), event.getY(), 1)){ //달팽이 삭제
 
                 }else {
                     //문어 공격 속도로 제어한다. 쿨타임 효과
@@ -1140,7 +1154,6 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
                 }else {
                     fish_Hit_Chose(2);                                  //드래그 물고기
-
                 }
 
                 drag_Action_Move = 0;
@@ -1157,7 +1170,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
     /**
      * 퍼즈 이벤트 게임 정지
-     */
+     *
     public boolean pause_Effect(float x, float y){
 
         //window_Width - 100, 10
@@ -1175,7 +1188,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         return false;
 
 
-    }
+    }*/
 
 
 
@@ -1211,7 +1224,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
         background_Effect.start();
 
         if(game_thread.getState() == Thread.State.TERMINATED) {
-            game_thread = new Game_Thread(holder);  //쓰레드가 홈버튼을 누름으로 인해 파괴 된다면 다시 생성
+            game_thread = new Game_Thread(/*holder*/);  //쓰레드가 홈버튼을 누름으로 인해 파괴 된다면 다시 생성
             game_thread.start(); //게임
 
         }else {
@@ -1230,10 +1243,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback{
 
         mRun = true;
 
-
-
-
     }
+
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {

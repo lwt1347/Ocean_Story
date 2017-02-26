@@ -19,10 +19,13 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonGame_StartClicked(View view){
         //게임 시작 버튼을 눌렀을때 셋팅 정보를 넘긴다.
         //게임화면 시작
+
         Intent intent = new Intent(getApplicationContext(), GameActivity.class);
+
         //intent.putExtra("cha","aa");
         startActivityForResult(intent, 1001);
 
     }
+
 
 }
